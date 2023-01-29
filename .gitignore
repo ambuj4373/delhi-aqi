@@ -1,39 +1,119 @@
-# History files
-.Rhistory
-.Rapp.history
+delhi_aqi <- read.csv("C:/Users/AMBUJ SHUKLA/Downloads/archive (11)/delhi_aqi.csv", header=FALSE)
+str(delhi_aqi)
 
-# Session Data files
-.RData
+#RENAME THE COLUMN NAME
 
-# User-specific files
-.Ruserdata
+new_colnames <- c("date", "co", "no", "no2", "o3", "so2", "pm2_5", "pm10", "nh3")
+colnames(delhi_aqi) <- new_colnames
 
-# Example code in package build process
-*-Ex.R
+View(delhi_aqi)
 
-# Output files from R CMD build
-/*.tar.gz
 
-# Output files from R CMD check
-/*.Rcheck/
+# Check for missing values
+missing_values <- is.na(delhi_aqi)
+sum(missing_values)
 
-# RStudio files
-.Rproj.user/
 
-# produced vignettes
-vignettes/*.html
-vignettes/*.pdf
+head(delhi_aqi)
+tail(delhi_aqi)
 
-# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
-.httr-oauth
 
-# knitr and R markdown default cache directories
-*_cache/
-/cache/
+summary(delhi_aqi)
 
-# Temporary files created by R markdown
-*.utf8.md
-*.knit.md
+delhi_aqi$date <- as.Date(delhi_aqi$date, "%Y-%m-%d %H:%M:%S")
 
-# R Environment Variables
-.Renviron
+for (col in c("co", "no", "no2", "o3", "so2", "pm2_5", "pm10", "nh3")) {
+  delhi_aqi[, col] <- as.numeric(as.character(delhi_aqi[, col]))
+}
+
+summary(delhi_aqi)
+
+
+missing_values <- is.na(delhi_aqi)
+sum(missing_values)
+
+#REMOVING MISSING VALUES
+
+delhi_aqi_cleaned <- delhi_aqi[!is.na(delhi_aqi$pm2_5), ]
+
+
+missing_values <- is.na(delhi_aqi_cleaned)
+sum(missing_values)
+
+
+##############__________________###########################---------------
+library(dplyr)
+#EDA_
+
+library(ggplot2)
+library(lubridate)
+
+# Convert date column to date class
+delhi_aqi$date <- as.Date(delhi_aqi$date)
+
+# Create a new column for month
+delhi_aqi$month <- month(delhi_aqi$date)
+
+# Group the data by month and calculate the mean for each pollutant
+monthly_mean <- delhi_aqi %>% 
+  group_by(month) %>% 
+  summarise_all(mean)
+
+# Plot the monthly average of each pollutant
+ggplot(monthly_mean, aes(month)) + 
+  
+  geom_line(aes(y = no2, color = "NO2"), size = 1) + 
+  geom_line(aes(y = o3, color = "O3"), size = 1) + 
+  geom_line(aes(y = pm10, color = "PM10"), size = 1) + 
+  geom_line(aes(y = pm2_5, color = "PM2.5"), size = 1) + 
+  geom_line(aes(y = so2, color = "SO2"), size = 1) + 
+  geom_line(aes(y = nh3, color = "NH3"), size = 1) +
+  scale_x_continuous(limits=c(1,12), breaks=c(1,2,3,4,5,6,7,8,9,10,11,12), labels=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) +
+  labs(x = "Month", y = "Pollutant Concentration (µg/m³)") +
+  scale_color_discrete(name = "Pollutant") +
+  theme_classic() +
+  theme(legend.position = "top")
+
+
+#creating a box plot of the levels of the pollutant Carbon Monoxide
+library(ggplot2)
+ggplot(delhi_aqi_cleaned, aes(x = factor(month(date)), y = co)) +
+  geom_boxplot(fill = "#2F4F4F") +
+  ggtitle("Box Plot of Carbon Monoxide in Delhi") +
+  xlab("Month") +
+  ylab("Carbon Monoxide (µg/m³)")
+
+#creating a box plot of the levels of the pollutant Nitrogen Dioxide
+library(ggplot2)
+ggplot(delhi_aqi_cleaned, aes(x = factor(month(date)), y = no2)) +
+  geom_boxplot(fill = "#2F4F4F") +
+  ggtitle("Box Plot of Nitrogen Dioxide in Delhi") +
+  xlab("Month") +
+  ylab("Nitrogen Dioxide (µg/m³)")
+
+#creating a box plot of the levels of the pollutant Ozone
+
+library(ggplot2)
+ggplot(delhi_aqi_cleaned, aes(x = factor(month(date)), y = o3)) +
+  geom_boxplot(fill = "#2F4F4F") +
+  ggtitle("Box Plot of Ozone in Delhi") +
+  xlab("Month") +
+  ylab("Ozone (µg/m³)")
+
+
+
+
+ggplot(delhi_aqi, aes(x=factor(month), y=co, fill = "")) +
+  geom_violin() +
+  xlab("Month") +
+  ylab("CO Levels") +
+  ggtitle("Violin Plot of CO Levels by Month")
+
+ggplot(delhi_aqi, aes(x=factor(month), y=no2)) +
+  geom_jitter(width=0.2, height=0.2) +
+  xlab("Month") +
+  ylab("NO2 Levels") +
+  ggtitle("Swarm Plot of NO2 Levels by Month")
+
+
+
